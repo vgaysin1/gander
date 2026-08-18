@@ -1,15 +1,3 @@
-Load data
-
-```
-read.csv()
-```
-
-> [!NOTE]
-> Enter this prompt " "
-> 
-
---------------
-
 # Part 1: SETUP
 
 ## Step 1. RStudio Setup
@@ -26,11 +14,7 @@ Install packages
 # AnVIL packages
 BiocManager::install("AnVILGCP")
 
-# Core CRAN packages
-install.packages("tidyverse")
-
 # Bioconductor packages (install via BiocManager)
-install.packages("BiocManager")
 BiocManager::install("DESeq2")
 
 # AI integration packages
@@ -50,8 +34,8 @@ library(ellmer)
 Import data from google cloud
 
 ```
-gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/airwaycounts.csv . --billing-project=terra-31b647f5" )
-gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/sample_metadata.csv . --billing-project=terra-31b647f5" )
+gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/airwaycounts.csv . " )
+gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/sample_metadata.csv . " )
 ```
 
 Load datasets for DESeq2 analysis
@@ -112,19 +96,22 @@ options(gander.chat = chat)
 
 # Part 2: DATA ANALYSIS USING GANDER
 
+> [!NOTE]
+> **For this part, create a new .R script that has only three commands, the two read.csv() and the object they want gander to manipulate - to eliminate content 'noise'.**
+
 ## Protocol for using a gander shortcut:
 
 > [!IMPORTANT]
 > 1. HIGHLIGHT an object: 'counts' 
-> 2. Evoke gander with your pre-set shortcut *hift+Cmd+g*
+> 2. Evoke gander with your pre-set shortcut *Shift+Cmd+g*
 > 3. ENTER PROMPT: Key information users need to know to achieve their goal.
 > 4. *Wait for gander output*
 
 # Explore counts and metadata
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'counts' 
-> PROMPT: Describe my counts dataset
+> HIGHLIGHT: 'counts' \
+> PROMPT: Describe my counts dataset \
 > PROMPT: Summarize my counts dataset
 
 ```
@@ -138,8 +125,8 @@ gander_peek()
 ```
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'metadata' 
-> PROMPT: Describe my metadata file
+> HIGHLIGHT: 'metadata' \
+> PROMPT: Describe my metadata file \
 ```
 metadata
 ```
