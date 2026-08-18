@@ -97,7 +97,14 @@ options(gander.chat = chat)
 # Part 2: DATA ANALYSIS USING GANDER
 
 > [!NOTE]
-> **For this part, you MUST create a new .R script that has only three commands: the two read.csv() and the object you want gander to manipulate - to keep Gander focused and avoid cluttering its context window**
+> **A MUST for Data Analysis with Gander: Minimize Context Noise**
+> 
+> For this section, you MUST create a new .R script (open a **fresh `.R` script**) containing only the necessary inputs to keep Gander focused and avoid cluttering its context window**:
+> 1. `read.csv()' for counts
+> 2. `read.csv()`for metadata
+> 3. The target R object for Gander to analyze (e.g. [imported] counts)
+>
+> *Keeping the script lean prevents background code clutter from interfering with Gander's responses.*
 
 ## Protocol for using a gander shortcut:
 
