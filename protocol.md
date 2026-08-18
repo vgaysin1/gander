@@ -126,14 +126,14 @@ gander_peek()
 
 > [!IMPORTANT]
 > HIGHLIGHT: 'metadata' \
-> PROMPT: Describe my metadata file \
+> PROMPT: Describe my metadata file 
 ```
 metadata
 ```
 
 # Filter counts 
 > [!IMPORTANT]
-> HIGHLIGHT: 'counts' 
+> HIGHLIGHT: 'counts' \
 > PROMPT: Filter genes with ≥ 1 counts in all samples, create a new counts object, and summarize
 
 ```
@@ -156,7 +156,7 @@ gander_peek()
 # Run DESeq2 on filtered counts 
 > [!IMPORTANT]
 > HIGHLIGHT: 'filtered_counts' AND 'metadata'
->     # the name of the filtered output file can vary (e.g. counts_filtered or filtered_counts or other)
+>     # the name of the filtered output file can vary (e.g. counts_filtered or filtered_counts or other) 
 >     # highlighting both objects ensures gander views both files 
 > PROMPT: Perform differential expression with filtered counts using DESeq2 and `dex` as the design condition and save the results in a new object
 
@@ -189,7 +189,7 @@ results <- results(dds, contrast = c("dex", "trt", "untrt"))
 # Examine significant genes
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'results' 
+> HIGHLIGHT: 'results' \
 > PROMPT: View top 10 significant genes based on padj
 
 :eyes: **sample gander output**
@@ -200,7 +200,7 @@ top_10_genes
 ```
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'results'
+> HIGHLIGHT: 'results' \
 > PROMPT: View top 10 significant genes based on fold change
 
 :eyes: **sample gander output**
@@ -245,7 +245,7 @@ head(results_genes$external_gene_name, 10)
 # Create an MA plot
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'results'
+> HIGHLIGHT: 'results' \
 > PROMPT: Create an MA plot using DESeq2
 
 :eyes: **sample gander output**
@@ -258,7 +258,7 @@ plotMA(results, main="MA Plot", ylim=c(-5,5))
 # Perform gene set enrichment analysis
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'results'
+> HIGHLIGHT: 'results' \
 > PROMPT: Perform gene set enrichment analysis
 
 :eyes: **sample gander output**
