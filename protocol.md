@@ -10,9 +10,9 @@ read.csv()
 
 --------------
 
-> Part 1: SETUP
+# Part 1: SETUP
 
-# Step 1. RStudio Setup
+## Step 1. RStudio Setup
 
 RStudio Cloud Environment Setup
 - CPUs: 8
@@ -61,7 +61,7 @@ counts <- read.csv("airwaycounts.csv", row.names = 1, check.names = FALSE)
 metadata <- read.csv("sample_metadata.csv", row.names = 1 )
 ```
 
-# Step 2. AI Setup
+## Step 2. AI Setup
 
 > [!IMPORTANT]
 > Execute following command in the Terminal (not inside R Console)
@@ -78,7 +78,7 @@ ollama/bin/ollama
 ollama/bin/ollama pull qwen3-coder
 ```
 
-# Step 3. Connect R to the AI model
+## Step 3. Connect R to the AI model
 
 > [!IMPORTANT]
 > Execute following command inside R Console (not in Terminal)
@@ -95,7 +95,7 @@ chat <- chat_ollama(
 chat$chat("Tell me one fact about bacterial genome")
 ```
 
-# Step 4. Configure gander in RStudio 
+## Step 4. Configure gander in RStudio 
 
 Make keyboard shortcut for gander
 
@@ -106,11 +106,13 @@ Make keyboard shortcut for gander
 options(gander.chat = chat)
 ```
 
-# Step 5. Begin gandering in RStudio...
+## Step 5. Begin gandering in RStudio...
 
-> Part 2: DATA ANALYSIS USING GANDER
+-----
 
-Protocol for using a gander shortcut:
+# Part 2: DATA ANALYSIS USING GANDER
+
+## Protocol for using a gander shortcut:
 
 > [!IMPORTANT]
 > 1. HIGHLIGHT an object: 'counts' 
@@ -343,3 +345,4 @@ go_enrichment <- enrichGO(gene = sig_genes,
 # View results
 go_enrichment
 ```
+### Currently failing at go_enrichment...need to troublshoot
