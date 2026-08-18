@@ -78,7 +78,7 @@ ollama/bin/ollama
 ollama/bin/ollama pull qwen3-coder
 ```
 
-#Step 3. Connect R to the AI model
+# Step 3. Connect R to the AI model
 
 > [!IMPORTANT]
 > Execute following command inside R Console (not in Terminal)
@@ -106,7 +106,7 @@ Make keyboard shortcut for gander
 options(gander.chat = chat)
 ```
 
-**Begin gandering in RStudio**
+# Step 5. Begin gandering in RStudio...
 
 > Part 2: DATA ANALYSIS USING GANDER
 
