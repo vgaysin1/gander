@@ -24,7 +24,10 @@
 2. When your environment is ready, its status will change to **Green (Running)**
 3. To launch, click the RStudio icon, then click **Open**. RStudio will open in a new browser tab. 
 
-## Step 3. Install packages
+
+# Part 2: Install packages, load libraries and get data
+
+## Step 1. Install packages
 
 ```
 # AnVIL packages
@@ -37,7 +40,7 @@ BiocManager::install("DESeq2")
 install.packages(c("gander", "ellmer"))
 ```
 
-## Step 4. Load Libraries
+## Step 2. Load Libraries
 
 ```
 library(AnVILGCP)
@@ -47,21 +50,21 @@ library(gander)
 library(ellmer)
 ```
 
-## Step 5. Import data from google cloud
+## Step 3. Import data from google cloud
 
 ```
 gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/airwaycounts.csv . " )
 gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/sample_metadata.csv . " )
 ```
 
-## Step 6. Load datasets for DESeq2 analysis
+## Step 4. Load datasets for DESeq2 analysis
 
 ```
 counts <- read.csv("airwaycounts.csv", row.names = 1, check.names = FALSE)
 metadata <- read.csv("sample_metadata.csv", row.names = 1 )
 ```
 
-# Part 2: Local AI Setup
+# Part 3: Local AI Setup
 
 ## Step 1. Navigate to the RStudio Terminal
 
@@ -121,7 +124,7 @@ options(gander.chat = chat)
 
 -----
 
-# Part 2: DATA ANALYSIS USING GANDER
+# Part 3: DESeq2 GANDER
 
 > [!NOTE]
 > **A MUST for Data Analysis with Gander: Minimize Context Noise**
@@ -219,6 +222,8 @@ dds <- DESeq(dds)
 # Get results
 results <- results(dds, contrast = c("dex", "trt", "untrt"))
 ```
+
+# Part 4: Data Analysis
 
 # Examine significant genes
 
