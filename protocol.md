@@ -1,14 +1,30 @@
-# Part 1: SETUP
+# Part 1: RStudio SETUP
 
-## Step 1. RStudio Setup
+## Step 1. Open RStudio Environment and Configure Compute Settings
 
-RStudio Cloud Environment Setup
-- CPUs: 8
-- Memory (GB): 52
-- [ ] Enable GPUs (NVIDIA Tesla T4, 1 GPU)
+1. Click on the name of your Workspace.
+2. Click on the cloud icon on the far right to view Cloud Environment options
+3. In the dialogue box, click the "Settings" button under RStudio
+4. You will see some default configuration options for the RStudio cloud environment, including a list of costs. Go ahead and **change RStudio Environment settings** to the following:
 
+| Parameter | Selection |
+|:-- | :-- |
+| Application | RStudio |
+| CPUs | 8 |
+| Memory | 52 GB |
+| GPU Configuration | Enable GPUs (Tobble **ON**)
+| GPU Type | NVIDIA Tesla T4 |
+| Number of GPUs | 1 |
 
-Install packages
+5. Review the estimated hourly running cost displayed in the dialog, then scroll down and click **CREATE**
+
+## Step 2. Launch and Open RStudio
+
+1. It will take a few minutes for AnVIL to activate your cloud environment (request cloud instances and configure GPU drivers), so please wait for provisioning
+2. When your environment is ready, its status will change to **Green (Running)**
+3. To launch, click the RStudio icon, then click **Open**. RStudio will open in a new browser tab. 
+
+## Step 3. Install packages
 
 ```
 # AnVIL packages
@@ -21,7 +37,7 @@ BiocManager::install("DESeq2")
 install.packages(c("gander", "ellmer"))
 ```
 
-Load Libraries
+## Step 4. Load Libraries
 
 ```
 library(AnVILGCP)
@@ -31,43 +47,54 @@ library(gander)
 library(ellmer)
 ```
 
-Import data from google cloud
+## Step 5. Import data from google cloud
 
 ```
 gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/airwaycounts.csv . " )
 gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/sample_metadata.csv . " )
 ```
 
-Load datasets for DESeq2 analysis
+## Step 6. Load datasets for DESeq2 analysis
 
 ```
 counts <- read.csv("airwaycounts.csv", row.names = 1, check.names = FALSE)
 metadata <- read.csv("sample_metadata.csv", row.names = 1 )
 ```
 
-## Step 2. AI Setup
+# Part 2: Local AI Setup
+
+## Step 1. Navigate to the RStudio Terminal
+
+*Terminal tab is located next to the R Console tab on the left*
 
 > [!IMPORTANT]
 > Execute following command in the Terminal (not inside R Console)
 
+## Step 2. Start Ollama server and download the model
+
 ```
-# Download locally and extract ollama
+# Create a directory and downolad the local Ollama 
 mkdir ollama
 curl -fsSL https://github.com/ollama/ollama/releases/download/v0.24.0/ollama-linux-amd64.tar.zst | tar x --zstd -C ollama
 
-# Launch the local ollama server
+# Start the Ollama server
+  # Runs the background service for local model hosting
+
 ollama/bin/ollama
 
-# Pull the AI Model
+# Download the AI Model
 ollama/bin/ollama pull qwen3-coder
 ```
 
-## Step 3. Connect R to the AI model
+## Step 3. Connect R to the Local AI server
+
+*Switch from Terminal back to the R Console*
 
 > [!IMPORTANT]
-> Execute following command inside R Console (not in Terminal)
+> Execute following commands inside R Console (not in Terminal)
 
 ```
+# Connect R to your local Ollama instance
 chat <- chat_ollama(
   base_url = Sys.getenv("ollama/bin/ollama", "http://localhost:11434"),
   model = "qwen3-coder",
@@ -75,7 +102,7 @@ chat <- chat_ollama(
 ```
 
 ```
-#Ask AI a question
+# Test the local AI Connection - Ask AI a question!
 chat$chat("Tell me one fact about bacterial genome")
 ```
 
