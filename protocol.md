@@ -124,7 +124,7 @@ options(gander.chat = chat)
 
 -----
 
-# Part 3: DESeq2 GANDER
+# Part 3: DESeq2 with GANDER
 
 > [!NOTE]
 > **A MUST for Data Analysis with Gander: Minimize Context Noise**
