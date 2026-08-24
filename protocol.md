@@ -276,7 +276,8 @@ top_10_genes
 
 ## Convert Ensembl ids to Gene Symbols
 
-> HIGHLIGHT: 'results'
+> [!IMPORTANT]
+> HIGHLIGHT: 'results' \
 > PROMPT: Convert ENSEMBL IDs to gene symbols and view first 10 gene symbols
 
 :eyes: **sample gander output**
