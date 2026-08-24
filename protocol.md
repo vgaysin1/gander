@@ -1,39 +1,42 @@
-# Part 1: RStudio SETUP
+# Part 1: RStudio Setup on AnVIL
 
-## Step 1. Open RStudio Environment and Configure Compute Settings
+## Step 1. Open Your Workspace and Configure Compute Settings
 
-1. Click on the name of your Workspace.
+1. Navigate to your AnVIL Workspace
 2. Click on the cloud icon on the far right to view Cloud Environment options
-3. In the dialogue box, click the "Settings" button under RStudio
-4. You will see some default configuration options for the RStudio cloud environment, including a list of costs. Go ahead and **change RStudio Environment settings** to the following:
+3. In the dialog box, click the **Settings** button under **RStudio**
+4. Configure the following:
 
 | Parameter | Selection |
 |:-- | :-- |
 | Application | RStudio |
 | CPUs | 8 |
 | Memory | 52 GB |
-| GPU Configuration | Enable GPUs (Tobble **ON**)
+| GPU Configuration | Enable GPUs (Toggle ON)
 | GPU Type | NVIDIA Tesla T4 |
 | Number of GPUs | 1 |
 
 5. Review the estimated hourly running cost displayed in the dialog, then scroll down and click **CREATE**
 
-## Step 2. Launch and Open RStudio
+***Provisioning takes several minutes. AnVIL is requesting cloud instances and configuring GPU drivers.***
 
-1. It will take a few minutes for AnVIL to activate your cloud environment (request cloud instances and configure GPU drivers), so please wait for provisioning
-2. When your environment is ready, its status will change to **Green (Running)**
-3. To launch, click the RStudio icon, then click **Open**. RStudio will open in a new browser tab. 
+## Step 2. Launch RStudio
 
+1. When your environment is ready, its status will change to **Green (Running)**
+2. Click the **RStudio** icon, then click **Open**.
+3. RStudio will open in a new browser tab. 
 
-# Part 2: Install packages, load libraries and get data
+# Part 2: Install Packages and Load Data
 
-## Step 1. Install packages
+## Step 1. Install Required Packages
+
+Run the following in the R Console:
 
 ```
 # AnVIL packages
 BiocManager::install("AnVILGCP")
 
-# Bioconductor packages (install via BiocManager)
+# Bioconductor packages
 BiocManager::install("DESeq2")
 
 # AI integration packages
@@ -50,84 +53,95 @@ library(gander)
 library(ellmer)
 ```
 
-## Step 3. Import data from google cloud
+## Step 3. Import data from Google Cloud Storage
+
+Run the following two commands pin the R Console. These copy the airway dataset files from an AnVIL workspace bucket:
 
 ```
 gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/airwaycounts.csv . " )
 gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/sample_metadata.csv . " )
 ```
 
-## Step 4. Load datasets for DESeq2 analysis
+:white_check_mark: Checkpoint: In the Files pane (bottom-right in RStudio), confirm that airwaycounts,csv and sample_metadata.csv are now present in your working directory.
+
+## Step 4. Load datasets into R
 
 ```
 counts <- read.csv("airwaycounts.csv", row.names = 1, check.names = FALSE)
 metadata <- read.csv("sample_metadata.csv", row.names = 1 )
 ```
 
-# Part 3: Local AI Setup
+:white_check_mark: Checkpoint: Run code `dim(counts)` - you should see genes x 8 samples. Run cod `metadata` to see the metadata file.
 
-## Step 1. Navigate to the RStudio Terminal
+# Part 3: Local AI Setup (Ollama + Qwen3-Coder)
 
-*Terminal tab is located next to the R Console tab on the left*
+Instead of relying on paid cloud API, we'll run a free, open-source AI model locally on your AnVIL instance, taking advantage of the GPU you provisioned.
+
+## Step 1. Opene RStudio Terminal
+
+In RStudio, click the **Terminal** tab (next to the Console tab)
 
 > [!IMPORTANT]
-> Execute following command in the Terminal (not inside R Console)
+> All commands in Part 3, Step 2 must be run in the Terminal (not inside R Console)
 
-## Step 2. Start Ollama server and download the model
+## Step 2. Install Ollama server and Download the Model
 
 ```
 # Create a directory and downolad the local Ollama 
 mkdir ollama
 curl -fsSL https://github.com/ollama/ollama/releases/download/v0.24.0/ollama-linux-amd64.tar.zst | tar x --zstd -C ollama
 
-# Start the Ollama server
-  # Runs the background service for local model hosting
-
+# Start the Ollama server (runs the background)
 ollama/bin/ollama
 
-# Download the AI Model
+# Download the AI Model (Qwen3-Coder, will take a few minutes)
 ollama/bin/ollama pull qwen3-coder
 ```
 
-## Step 3. Connect R to the Local AI server
+What's happening:
+- Ollama is a tool for running large language models locally
+- Qwen3-Coder is an open-source model optimized for code generation. It understands R, Bioconductor, and bioinformatics workflows.
 
-*Switch from Terminal back to the R Console*
+## Step 3. Connect R to your Local AI server
+
+*Switch back to the R Console tab*
 
 > [!IMPORTANT]
 > Execute following commands inside R Console (not in Terminal)
 
 ```
-# Connect R to your local Ollama instance
+# Connect R to your local AI
 chat <- chat_ollama(
   base_url = Sys.getenv("ollama/bin/ollama", "http://localhost:11434"),
   model = "qwen3-coder",
 )
+
+# Test the Connection - ask AI a question
+chat$chat("Tell me one fact about bacterial genomes")
 ```
 
-```
-# Test the local AI Connection - Ask AI a question!
-chat$chat("Tell me one fact about bacterial genome")
-```
-
-## Step 4. Configure gander in RStudio 
-
-Make keyboard shortcut for gander
-
-**In RStudio: Navigate to Tools → Modify Keyboard Shortcuts… → search for “gander” → assign Shift+Cmd+g**
+## Step 4. Configure gander  
 
 ```
-#Set gander's default chat model
+#Set gander's default chat model to your local AI
 options(gander.chat = chat)
 ```
 
-## Step 5. Begin gandering in RStudio...
+**Set a keyboard shortcut** for gander - this is how you'll invoke gander throughout the workshop:
+
+***In RStudio: Navigate to Tools → Modify Keyboard Shortcuts… → search for “gander” → assign Shift+Cmd+g***
+
+
+## Step 5. You are ready to begin gandering in RStudio...
+
+Your RStudio session now has an AI research partner that lives on your AnVIL instance. Let's put it to work.
 
 -----
 
-# Part 3: DESeq2 with GANDER
+# Part 4: Differential Expression with DESeq2 + gander
 
 > [!NOTE]
-> **A MUST for Data Analysis with Gander: Minimize Context Noise**
+> **A Critical tip for Data Analysis with Gander: Minimize Context Noise**
 > 
 > For this section, you MUST create a new .R script (open a **fresh `.R` script**) containing only the necessary inputs to keep Gander focused and avoid cluttering its context window**:
 > 1. `read.csv()' for counts
@@ -136,13 +150,13 @@ options(gander.chat = chat)
 >
 > *Keeping the script lean prevents background code clutter from interfering with Gander's responses.*
 
-## Protocol for using a gander shortcut:
+## How to use gander shortcut: the works is always the same
 
 > [!IMPORTANT]
-> 1. HIGHLIGHT an object: 'counts' 
-> 2. Evoke gander with your pre-set shortcut *Shift+Cmd+g*
-> 3. ENTER PROMPT: Key information users need to know to achieve their goal.
-> 4. *Wait for gander output*
+> 1. **Highlight** an object: e.g. 'counts' \
+> 2. **Evoke gander** with your pre-set shortcut *Shift+Cmd+g* \
+> 3. **Enter a prompt** - a short, concrete instruction of what you want to do in plain language \
+> 4. **Review the output** before running the generated code
 
 # Explore counts and metadata
 
@@ -155,7 +169,7 @@ options(gander.chat = chat)
 counts
 ```
 
-See what context gander saw
+To see what context gander used to generate its response:
 
 ```
 gander_peek()
@@ -164,11 +178,13 @@ gander_peek()
 > [!IMPORTANT]
 > HIGHLIGHT: 'metadata' \
 > PROMPT: Describe my metadata file 
+
 ```
 metadata
 ```
 
-# Filter counts 
+# Filter Low-Expression Genes
+
 > [!IMPORTANT]
 > HIGHLIGHT: 'counts' \
 > PROMPT: Filter genes with ≥ 1 counts in all samples, create a new counts object, and summarize
@@ -184,23 +200,26 @@ counts_filtered <- counts[rowSums(counts >= 1) == ncol(counts), ]
 summary(counts_filtered)
 ```
 
-# See what context gander 'saw'
+# See what gander saw:
 
 ```
 gander_peek()
 ```
 
+:white_check_mark: Checkpoint: The number of rows in filtered counts should be smaller than counts after removing low-expression genes
+
 # Run DESeq2 on filtered counts 
+
 > [!IMPORTANT]
-> HIGHLIGHT: 'filtered_counts' AND 'metadata'
+> HIGHLIGHT: 'filtered_counts' AND 'metadata' (select both lines for gander to see both the count matrix and the metadata to understand the full analysis context)
 >     # the name of the filtered output file can vary (e.g. counts_filtered or filtered_counts or other) 
->     # highlighting both objects ensures gander views both files 
 > PROMPT: Perform differential expression with filtered counts using DESeq2 and `dex` as the design condition and save the results in a new object
 
 ```
 filtered counts
 metadata
 ```
+Check what gander saw:
 
 ```
 gander_peek()
@@ -223,9 +242,15 @@ dds <- DESeq(dds)
 results <- results(dds, contrast = c("dex", "trt", "untrt"))
 ```
 
-# Part 4: Data Analysis
+Check what gander saw:
 
-# Examine significant genes
+```
+gander_peek()
+```
+
+# Part 5: Data Analysis and Visualization
+
+## Examine significant genes
 
 > [!IMPORTANT]
 > HIGHLIGHT: 'results' \
@@ -249,9 +274,10 @@ top_10_genes <- results[order(abs(results$log2FoldChange), decreasing = TRUE), ]
 top_10_genes
 ```
 
-# Convert Ensemble ids into gene names
+## Convert Ensembl ids to Gene Symbols
+
 > HIGHLIGHT: 'results'
-> PROMPT: Convert ENSEMBL IDS to gene symbols and view first 10 gene symbols
+> PROMPT: Convert ENSEMBL IDs to gene symbols and view first 10 gene symbols
 
 :eyes: **sample gander output**
 
@@ -281,7 +307,7 @@ results_genes$external_gene_name <- mapIds(org.Hs.eg.db, keys=rownames(results_g
 head(results_genes$external_gene_name, 10)
 ```
 
-# Create an MA plot
+## Create an MA plot
 
 > [!IMPORTANT]
 > HIGHLIGHT: 'results' \
@@ -294,7 +320,7 @@ library(ggplot2)
 plotMA(results, main="MA Plot", ylim=c(-5,5))
 ```
 
-# Perform gene set enrichment analysis
+## Perform gene set enrichment analysis
 
 > [!IMPORTANT]
 > HIGHLIGHT: 'results' \
