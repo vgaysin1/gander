@@ -242,7 +242,6 @@ dds <- DESeq(dds)
 results <- results(dds, contrast = c("dex", "trt", "untrt"))
 
 #Convert the DESeqResults object into a standard data frame, preserve gene names from row names into a dedicated column, and sort rows by raw p-value.
-
 results_df <- as.data.frame(results) %>%
   rownames_to_column(var = "gene") %>%
   arrange(pvalue)
@@ -268,51 +267,17 @@ gander_peek()
 results_df[order(results_df$padj), ][1:10, ]
 ```
 
-## Convert Ensembl ids to Gene Symbols
-
-> [!IMPORTANT]
-> HIGHLIGHT: 'results_df' \
-> PROMPT: Convert ENSEMBL IDs to gene symbols and view first 10 gene symbols
-
-:eyes: **sample gander output**
-
-```
-library(org.Hs.eg.db)
-results_genes <- as.data.frame(results)
-results_genes$external_gene_name <- mapIds(org.Hs.eg.db, keys=rownames(results_genes), column="SYMBOL", keytype="ENSEMBL", multiVals="first")
-head(results_genes$external_gene_name, 10)
-```
-
-> [!CAUTION]
-> May get an ERROR due to missing the required library 'org.Hs.eg.db'. 
-> Can choose to manually install with `install.packages("BiocManager")`, or, use gander to troubleshoot!
-
-Install the required package
-
-```
-BiocManager::install("DESeq2")
-```
-
-then, re-run gander-suggested code
-
-```
-library(org.Hs.eg.db)
-results_genes <- as.data.frame(results)
-results_genes$external_gene_name <- mapIds(org.Hs.eg.db, keys=rownames(results_genes), column="SYMBOL", keytype="ENSEMBL", multiVals="first")
-head(results_genes$external_gene_name, 10)
-```
-
 ## Create an MA plot
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'results' \
+> HIGHLIGHT: 'results_df' \
 > PROMPT: Create an MA plot using DESeq2
 
 :eyes: **sample gander output**
 
 ```
 library(ggplot2)
-plotMA(results, main="MA Plot", ylim=c(-5,5))
+plotMA(results_df, main="MA Plot", ylim=c(-5,5))
 ```
 
 
