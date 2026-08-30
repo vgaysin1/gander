@@ -241,6 +241,12 @@ dds <- DESeq(dds)
 # Get results
 results <- results(dds, contrast = c("dex", "trt", "untrt"))
 ```
+#Convert the DESeqResults object into a standard data frame, preserve gene names from row names into a dedicated column, and sort rows by raw p-value.
+
+results_df <- as.data.frame(results) %>%
+  rownames_to_column(var = "gene") %>%
+  arrange(pvalue)
+
 
 Check what gander saw:
 
@@ -321,42 +327,43 @@ library(ggplot2)
 plotMA(results, main="MA Plot", ylim=c(-5,5))
 ```
 
+
+# Part 6: Gene Enrichment Analysis
+
+After differential expression you have hundreds of genes — too many to read one by one. Functional enrichment analysis translates differentially expressed genes into biological themes, pathways and functions.
+
 ## Perform gene set enrichment analysis
+
+Step 1: Extract significant results for gene set analysis
 
 > [!IMPORTANT]
 > HIGHLIGHT: 'results' \
-> PROMPT: Perform gene set enrichment analysis
+> PROMPT: Create a new significant results object with upregulated genes based on padj and log2FC
 
 :eyes: **sample gander output**
 
 ```
-library(clusterProfiler)
-library(org.Hs.eg.db)
-
-# Convert ENSEMBL IDs to gene symbols
-gene_symbols <- mapIds(org.Hs.eg.db, 
-                       keys=rownames(results), 
-                       column="SYMBOL", 
-                       keytype="ENSEMBL", 
-                       multiVals="first")
-
-# Filter for significant genes (padj < 0.05)
-sig_genes <- names(which(results$padj < 0.05))
-
-# Remove NA symbols
-sig_genes <- sig_genes[!is.na(gene_symbols[sig_genes])]
-
-# Perform GO enrichment analysis
-go_enrichment <- enrichGO(gene = sig_genes,
-                          orgDb = org.Hs.eg.db,
-                          keyType = "SYMBOL",
-                          ont = "BP",
-                          pvalueCutoff = 0.05,
-                          qvalueCutoff = 0.1)
-
-# View results
-go_enrichment
+res_up <- results[which(results$padj < 0.05 & results$log2FoldChange > 0), ]
 ```
+
+Step 2: Map ENSEMBL IDs to ENTREZ IDs
+
+> [!IMPORTANT]
+> HIGHLIGHT: 'res_up' \
+> PROMPT: Map Ensembl IDs to Entreez IDs and Symbols 
+
+:eyes: **sample gander output**
+
+```
+res_up_mapped <- merge(
+  as.data.frame(res_up),
+  bitr(rownames(res_up), fromType = "ENSEMBL", toType = c("ENTREZID", "SYMBOL"), OrgDb = org.Hs.eg.db),
+  by.x = 0, by.y = "ENSEMBL"
+)
+
+```
+
+Step 3: Use clusterProfiler to perform gene enrichment analysis
 
 > [!CAUTION]
 > May get an ERROR due to missing the required library 'clusterProfiler'. 
@@ -368,34 +375,29 @@ Install the missing package
 BiocManager::install("clusterProfiler")
 ```
 
-re-run gander-suggested code
+:eyes: **sample gander output**
 
 ```
 library(clusterProfiler)
 library(org.Hs.eg.db)
 
-# Convert ENSEMBL IDs to gene symbols
-gene_symbols <- mapIds(org.Hs.eg.db, 
-                       keys=rownames(results), 
-                       column="SYMBOL", 
-                       keytype="ENSEMBL", 
-                       multiVals="first")
+go_enrichment <- enrichGO(
+  gene = res_up_mapped$ENTREZID,
+  OrgDb = org.Hs.eg.db,
+  keyType = "ENTREZID",
+  ont = "BP",
+  pvalueCutoff = 0.05,
+  qvalueCutoff = 0.05
+)
 
-# Filter for significant genes (padj < 0.05)
-sig_genes <- names(which(results$padj < 0.05))
+kegg_enrichment <- enrichKEGG(
+  gene = res_up_mapped$ENTREZID,
+  organism = "hsa",
+  pvalueCutoff = 0.05,
+  qvalueCutoff = 0.05
+)
 
-# Remove NA symbols
-sig_genes <- sig_genes[!is.na(gene_symbols[sig_genes])]
-
-# Perform GO enrichment analysis
-go_enrichment <- enrichGO(gene = sig_genes,
-                          orgDb = org.Hs.eg.db,
-                          keyType = "SYMBOL",
-                          ont = "BP",
-                          pvalueCutoff = 0.05,
-                          qvalueCutoff = 0.1)
-
-# View results
 go_enrichment
+kegg_enrichment
 ```
-### Currently failing at go_enrichment...need to troublshoot
+Step 4: Visualize GO enrichment results using clusterProfiler
