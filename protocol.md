@@ -240,13 +240,13 @@ dds <- DESeq(dds)
 
 # Get results
 results <- results(dds, contrast = c("dex", "trt", "untrt"))
-```
+
 #Convert the DESeqResults object into a standard data frame, preserve gene names from row names into a dedicated column, and sort rows by raw p-value.
 
 results_df <- as.data.frame(results) %>%
   rownames_to_column(var = "gene") %>%
   arrange(pvalue)
-
+```
 
 Check what gander saw:
 
@@ -259,31 +259,19 @@ gander_peek()
 ## Examine significant genes
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'results' \
+> HIGHLIGHT: 'results_df' \
 > PROMPT: View top 10 significant genes based on padj
 
 :eyes: **sample gander output**
 
 ```
-top_10_genes <- results[order(results$padj), ][1:10, ]
-top_10_genes
-```
-
-> [!IMPORTANT]
-> HIGHLIGHT: 'results' \
-> PROMPT: View top 10 significant genes based on fold change
-
-:eyes: **sample gander output**
-
-```
-top_10_genes <- results[order(abs(results$log2FoldChange), decreasing = TRUE), ][1:10, ]
-top_10_genes
+results_df[order(results_df$padj), ][1:10, ]
 ```
 
 ## Convert Ensembl ids to Gene Symbols
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'results' \
+> HIGHLIGHT: 'results_df' \
 > PROMPT: Convert ENSEMBL IDs to gene symbols and view first 10 gene symbols
 
 :eyes: **sample gander output**
