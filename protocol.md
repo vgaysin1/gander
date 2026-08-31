@@ -44,20 +44,26 @@ In RStudio, click the **Terminal** tab (next to the Console tab)
 ```
 # Create a directory and downolad the local Ollama 
 mkdir ollama
-curl -fsSL https://github.com/ollama/ollama/releases/download/v0.24.0/ollama-linux-amd64.tar.zst | tar x --zstd -C ollama
+curl -fsSL https://ollama.com/download/ollama-linux-amd64.tar.zst | tar x --zstd -C ollama
 
-# Start the Ollama server (runs the background)
-ollama/bin/ollama
+# Launch the server in the background using nohup to redirect logs and keep the API running quietly.
+nohup ollama/bin/ollama serve > ollama.log 2>&1 &
 
-# Download the AI Model (Qwen3-Coder, will take a few minutes)
+# Download the model
 ollama/bin/ollama pull qwen3-coder
+
+
+## Step 3. Do a test prompt and check GPU usage
+
+```
+# Execute a test prompt
+ollama/bin/ollama run llama3.1 "Say hi"
+
+# Inspect active processes to confirm the model is partly offloaded 100% to GPU VRAM.
+ollama/bin/ollama ps
 ```
 
-What's happening:
-- Ollama is a tool for running large language models locally
-- Qwen3-Coder is an open-source model optimized for code generation. It understands R, Bioconductor, and bioinformatics workflows.
-
-## Step 3. Connect R to your Local AI server
+## Step 4. Connect R to your Local AI server
 
 *Switch back to the R Console tab*
 
@@ -166,7 +172,7 @@ metadata <- read.csv("sample_metadata.csv", row.names = 1 )
 > 3. **Enter a prompt** - a short, concrete instruction of what you want to do in plain language \
 > 4. **Review the output** before running the generated code
 
-# a. Explore counts and metadata
+## Explore counts and metadata
 
 > [!IMPORTANT]
 > HIGHLIGHT: 'counts' \
@@ -232,7 +238,7 @@ metadata %>%
   as.data.frame()
 ```
 
-# b. Filter Low-Expression Genes
+## Filter Low-Expression Genes
 
 > [!IMPORTANT]
 > HIGHLIGHT: 'counts' \
@@ -251,13 +257,13 @@ summary(counts_filtered)
 
 :white_check_mark: Checkpoint: The number of rows in filtered counts should be smaller than counts after removing low-expression genes
 
-# See what gander saw:
+## See what gander saw:
 
 ```
 gander_peek()
 ```
 
-# c. Run DESeq2 on filtered counts 
+## Run DESeq2 on filtered counts 
 
 > [!IMPORTANT]
 > HIGHLIGHT: 'filtered_counts' AND 'metadata' (select both lines for gander to see both the count matrix and the metadata to understand the full analysis context) \
@@ -295,6 +301,9 @@ as.data.frame(results) %>%
   head(10)
 ```
 
+# Part 6: Data Analysis and Visualization
+
+## Summarize results
 > [!IMPORTANT]
 > HIGHLIGHT: 'results' \
 > PROMPT: Summarize results
@@ -319,8 +328,20 @@ results %>%
   print()
 ```
 
+## Ask a specific question
+> [!IMPORTANT]
+> HIGHLIGHT: results \
+> PROMPT: How many adjusted p-values were less than 0.1?
 
-# Part 6: Data Analysis and Visualization
+```
+results
+```
+
+:eyes: **sample gander output**
+
+```
+sum(results$padj < 0.1, na.rm = TRUE)
+```
 
 ## Examine significant genes
 
@@ -328,23 +349,39 @@ results %>%
 > HIGHLIGHT: 'results' \
 > PROMPT: View top 10 significant genes based on padj
 
+```
+results
+```
+
 :eyes: **sample gander output**
 
 ```
-results_df[order(results_df$padj), ][1:10, ]
+results %>% 
+  as.data.frame() %>% 
+  rownames_to_column(var = "gene") %>% 
+  arrange(padj) %>% 
+  head(10) %>% 
+  select(gene, padj)
 ```
 
 ## Create an MA plot
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'results_df' \
-> PROMPT: Create an MA plot using DESeq2
+> HIGHLIGHT: 'results' \
+> PROMPT: Use DESeq2 to create an MA plot
 
 :eyes: **sample gander output**
 
 ```
 library(ggplot2)
-plotMA(results_df, main="MA Plot", ylim=c(-5,5))
+data <- as.data.frame(results)
+data$significant <- ifelse(data$padj < 0.05, "Significant", "Not Significant")
+ggplot(data, aes(x = baseMean, y = log2FoldChange)) +
+  geom_point(aes(color = significant), alpha = 0.6) +
+  scale_x_log10() +
+  labs(title = "MA Plot", x = "Average Expression (baseMean)", y = "Log2 Fold Change") +
+  theme_minimal() +
+  scale_color_manual(values = c("Not Significant" = "black", "Significant" = "red"))
 ```
 
 
@@ -358,66 +395,37 @@ Step 1: Extract significant results for gene set analysis
 
 > [!IMPORTANT]
 > HIGHLIGHT: 'results' \
-> PROMPT: Create a new significant results object with upregulated genes based on padj and log2FC
+> PROMPT: Create a new object with significantly upregulated genes based on padj and log2FC and exclude NA values
 
 :eyes: **sample gander output**
 
 ```
-res_up <- results[which(results$padj < 0.05 & results$log2FoldChange > 0), ]
+significant_genes <- results %>%
+  as.data.frame() %>%
+  filter(!is.na(padj) & !is.na(log2FoldChange)) %>%
+  filter(padj < 0.05 & abs(log2FoldChange) > 1) %>%
+  rownames_to_column(var = "gene") %>%
+  column_to_rownames(var = "gene")
 ```
 
-Step 2: Map ENSEMBL IDs to ENTREZ IDs
+Step2: Convert Ensembl IDs to ENTREZ IDs for GO analysis
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'res_up' \
-> PROMPT: Map Ensembl IDs to Entreez IDs and Symbols 
-
-:eyes: **sample gander output**
+> HIGHLIGHT: 'significant_genes' \
+> PROMPT: The genes in this dataset use Ensembl indentifiers, while gene enrichment analysis expects gene symbols. Map our Ensembl IDs to gene symbols.
 
 ```
-res_up_mapped <- merge(
-  as.data.frame(res_up),
-  bitr(rownames(res_up), fromType = "ENSEMBL", toType = c("ENTREZID", "SYMBOL"), OrgDb = org.Hs.eg.db),
-  by.x = 0, by.y = "ENSEMBL"
-)
+library(biomaRt)
 
-```
+mart <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+genes <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"), mart = mart)
 
-Step 3: Use clusterProfiler to perform gene enrichment analysis
+significant_genes <- significant_genes %>%
+  left_join(genes, by = c("ensembl_gene_id" = "ensembl_gene_id")) %>%
+  rename(gene_symbol = external_gene_name)
+  ```
+**This is stalling - may be running out of memory**
 
-> [!CAUTION]
-> May get an ERROR due to missing the required library 'clusterProfiler'. 
-> Can choose to manually install with `BiocManager::install("clusterProfiler")`, or, use gander to troubleshoot!
 
-Install the missing package
+`
 
-```
-BiocManager::install("clusterProfiler")
-```
-
-:eyes: **sample gander output**
-
-```
-library(clusterProfiler)
-library(org.Hs.eg.db)
-
-go_enrichment <- enrichGO(
-  gene = res_up_mapped$ENTREZID,
-  OrgDb = org.Hs.eg.db,
-  keyType = "ENTREZID",
-  ont = "BP",
-  pvalueCutoff = 0.05,
-  qvalueCutoff = 0.05
-)
-
-kegg_enrichment <- enrichKEGG(
-  gene = res_up_mapped$ENTREZID,
-  organism = "hsa",
-  pvalueCutoff = 0.05,
-  qvalueCutoff = 0.05
-)
-
-go_enrichment
-kegg_enrichment
-```
-Step 4: Visualize GO enrichment results using clusterProfiler
