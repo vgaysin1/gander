@@ -108,12 +108,13 @@ library(ellmer)
 
 ## Step 3. Configure gander  
 
+Step 1: Set gander's default chat model to your local AI
+
 ```
-#Set gander's default chat model to your local AI
 options(gander.chat = chat)
 ```
 
-**Set a keyboard shortcut** for gander - this is how you'll invoke gander throughout the workshop:
+Step 2: **Set a keyboard shortcut** for gander - this is how you'll invoke gander throughout the workshop:
 
 ***In RStudio: Navigate to Tools → Modify Keyboard Shortcuts… → search for “gander” → assign Shift+Cmd+g***
 
