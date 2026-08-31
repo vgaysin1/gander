@@ -408,23 +408,7 @@ significant_genes <- results %>%
   column_to_rownames(var = "gene")
 ```
 
-Step2: Convert Ensembl IDs to ENTREZ IDs for GO analysis
 
-> [!IMPORTANT]
-> HIGHLIGHT: 'significant_genes' \
-> PROMPT: The genes in this dataset use Ensembl indentifiers, while gene enrichment analysis expects gene symbols. Map our Ensembl IDs to gene symbols.
-
-```
-library(biomaRt)
-
-mart <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
-genes <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"), mart = mart)
-
-significant_genes <- significant_genes %>%
-  left_join(genes, by = c("ensembl_gene_id" = "ensembl_gene_id")) %>%
-  rename(gene_symbol = external_gene_name)
-  ```
-**This is stalling - may be running out of memory**
 
 
 `
