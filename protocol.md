@@ -264,7 +264,7 @@ gander_peek()
 
 > [!IMPORTANT]
 > HIGHLIGHT: 'filtered_counts' AND 'metadata' (select both lines for gander to see both the count matrix and the metadata to understand the full analysis context) \
->     # the name of the filtered output file can vary (e.g. counts_filtered or filtered_counts or other) 
+>     # the name of the filtered output file can vary (e.g. counts_filtered or filtered_counts or other) \
 > PROMPT: Perform differential expression with filtered counts using DESeq2 and `dex` as the design condition then save the results as a new object
 
 ```
