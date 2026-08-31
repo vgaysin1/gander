@@ -52,14 +52,14 @@ nohup ollama/bin/ollama serve > ollama.log 2>&1 &
 # Download the model
 ollama/bin/ollama pull qwen3-coder
 
-# Step 3. Do a test prompt
+# Do a test prompt
 ollama/bin/ollama run llama3.1 "Say hi"
 
 # Check GPU usage
 ollama/bin/ollama ps
 ```
 
-## Step 4. Connect R to your Local AI server
+## Step 3. Connect R to your Local AI server
 
 *Switch back to the R Console tab*
 
