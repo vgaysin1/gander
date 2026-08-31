@@ -26,54 +26,9 @@
 2. Click the **RStudio** icon, then click **Open**.
 3. RStudio will open in a new browser tab. 
 
-# Part 2: Install Packages and Load Data
+---
 
-## Step 1. Install Required Packages
-
-Run the following in the R Console:
-
-```
-# AnVIL packages
-BiocManager::install("AnVILGCP")
-
-# Bioconductor packages
-BiocManager::install("DESeq2")
-
-# AI integration packages
-install.packages(c("gander", "ellmer"))
-```
-
-## Step 2. Load Libraries
-
-```
-library(AnVILGCP)
-library(tidyverse)
-library(DESeq2)
-library(gander)
-library(ellmer)
-```
-
-## Step 3. Import data from Google Cloud Storage
-
-Run the following two commands pin the R Console. These copy the airway dataset files from an AnVIL workspace bucket:
-
-```
-gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/airwaycounts.csv . " )
-gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/sample_metadata.csv . " )
-```
-
-:white_check_mark: Checkpoint: In the Files pane (bottom-right in RStudio), confirm that airwaycounts,csv and sample_metadata.csv are now present in your working directory.
-
-## Step 4. Load datasets into R
-
-```
-counts <- read.csv("airwaycounts.csv", row.names = 1, check.names = FALSE)
-metadata <- read.csv("sample_metadata.csv", row.names = 1 )
-```
-
-:white_check_mark: Checkpoint: Run code `dim(counts)` - you should see genes x 8 samples. Run cod `metadata` to see the metadata file.
-
-# Part 3: Local AI Setup (Ollama + Qwen3-Coder)
+# Part 2: Local AI Setup (Ollama + Qwen3-Coder)
 
 Instead of relying on paid cloud API, we'll run a free, open-source AI model locally on your AnVIL instance, taking advantage of the GPU you provisioned.
 
@@ -120,7 +75,36 @@ chat <- chat_ollama(
 chat$chat("Tell me one fact about bacterial genomes")
 ```
 
-## Step 4. Configure gander  
+---
+
+# Part 3: Install Packages 
+
+## Step 1. Install Required Packages
+
+Run the following in the R Console:
+
+```
+# AnVIL packages
+BiocManager::install("AnVILGCP")
+
+# Bioconductor packages
+BiocManager::install("DESeq2")
+
+# AI integration packages
+install.packages(c("gander", "ellmer"))
+```
+
+## Step 2. Load Libraries
+
+```
+library(AnVILGCP)
+library(tidyverse)
+library(DESeq2)
+library(gander)
+library(ellmer)
+```
+
+## Step 3. Configure gander  
 
 ```
 #Set gander's default chat model to your local AI
@@ -131,14 +115,38 @@ options(gander.chat = chat)
 
 ***In RStudio: Navigate to Tools → Modify Keyboard Shortcuts… → search for “gander” → assign Shift+Cmd+g***
 
-
-## Step 5. You are ready to begin gandering in RStudio...
+## Step 4. You are ready to begin gandering in RStudio...
 
 Your RStudio session now has an AI research partner that lives on your AnVIL instance. Let's put it to work.
 
+---
+
+# Part 4: Import data
+
+## Step 1. Import data from Google Cloud Storage
+
+Run the following two commands pin the R Console. These copy the airway dataset files from an AnVIL workspace bucket:
+
+```
+gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/airwaycounts.csv . " )
+gcloud_storage( "cp gs://fc-493d543d-3286-48ad-aeec-0bcb84b06fe5/sample_metadata.csv . " )
+```
+
+:white_check_mark: Checkpoint: In the Files pane (bottom-right in RStudio), confirm that airwaycounts,csv and sample_metadata.csv are now present in your working directory.
+
+## Step 2. Load datasets into R
+
+```
+counts <- read.csv("airwaycounts.csv", row.names = 1, check.names = FALSE)
+metadata <- read.csv("sample_metadata.csv", row.names = 1 )
+```
+
+:white_check_mark: Checkpoint: Run code `dim(counts)` - you should see genes x 8 samples. Run cod `metadata` to see the metadata file.
+
+
 -----
 
-# Part 4: Differential Expression with DESeq2 + gander
+# Part 5: Differential Expression with DESeq2 + gander
 
 > [!NOTE]
 > **A Critical tip for Data Analysis with Gander: Minimize Context Noise**
@@ -158,21 +166,43 @@ Your RStudio session now has an AI research partner that lives on your AnVIL ins
 > 3. **Enter a prompt** - a short, concrete instruction of what you want to do in plain language \
 > 4. **Review the output** before running the generated code
 
-# Explore counts and metadata
+# a. Explore counts and metadata
 
 > [!IMPORTANT]
 > HIGHLIGHT: 'counts' \
-> PROMPT: Describe my counts dataset \
-> PROMPT: Summarize my counts dataset
+> PROMPT: Describe my counts dataset
 
 ```
 counts
 ```
 
+:eyes: **sample gander output**
+
+`counts is a data frame containing read counts for multiple samples across several rows. The dataset appears to have 5 rows and 8 columns, with each column representing a different sample (likely from RNA-seq or similar sequencing experiments) and each row representing a gene or feature. The values are integer counts, with most entries being zero, suggesting this might be a sparse count matrix where many genes have no detectable expression in certain samples. The first few rows show counts ranging from small values around 30-60 up to approximately 1,100 for the highest values in each sample.`
+
+
 To see what context gander used to generate its response:
 
 ```
 gander_peek()
+```
+
+> [!IMPORTANT]
+> HIGHLIGHT: 'counts' \
+> PROMPT: Summarize key stat metrics for counts dataset 
+
+```
+counts
+```
+
+:eyes: **sample gander output**
+
+```
+library(dplyr)
+
+counts %>%
+  summarise_all(list(mean = mean, sd = sd, min = min, max = max)) %>%
+  mutate_if(is.numeric, round, 2)
 ```
 
 > [!IMPORTANT]
@@ -182,12 +212,31 @@ gander_peek()
 ```
 metadata
 ```
+:eyes: **sample gander output**
 
-# Filter Low-Expression Genes
+`metadata is a data frame containing experimental metadata for RNA-seq samples, with columns for sample identifiers (SampleName, Run, Experiment, Sample, BioSample), experimental conditions (cell line, dex treatment, albuterol treatment), and sequencing details (avgLength). It appears to contain 49 rows of sample information from a genomic study.`
+
+
+> [!IMPORTANT]
+> HIGHLIGHT: 'metadata' \
+> PROMPT: View my metadata file 
+
+```
+metadata
+```
+:eyes: **sample gander output**
+
+```
+metadata %>%
+  head() %>%
+  as.data.frame()
+```
+
+# b. Filter Low-Expression Genes
 
 > [!IMPORTANT]
 > HIGHLIGHT: 'counts' \
-> PROMPT: Filter genes with ≥ 1 counts in all samples, create a new counts object, and summarize
+> PROMPT: Filter genes with ≥ 1 counts in all samples, create a new counts object, then summarize
 
 ```
 counts
@@ -200,65 +249,83 @@ counts_filtered <- counts[rowSums(counts >= 1) == ncol(counts), ]
 summary(counts_filtered)
 ```
 
+:white_check_mark: Checkpoint: The number of rows in filtered counts should be smaller than counts after removing low-expression genes
+
 # See what gander saw:
 
 ```
 gander_peek()
 ```
 
-:white_check_mark: Checkpoint: The number of rows in filtered counts should be smaller than counts after removing low-expression genes
-
-# Run DESeq2 on filtered counts 
+# c. Run DESeq2 on filtered counts 
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'filtered_counts' AND 'metadata' (select both lines for gander to see both the count matrix and the metadata to understand the full analysis context)
+> HIGHLIGHT: 'filtered_counts' AND 'metadata' (select both lines for gander to see both the count matrix and the metadata to understand the full analysis context) \
 >     # the name of the filtered output file can vary (e.g. counts_filtered or filtered_counts or other) 
-> PROMPT: Perform differential expression with filtered counts using DESeq2 and `dex` as the design condition and save the results in a new object
+> PROMPT: Perform differential expression with filtered counts using DESeq2 and `dex` as the design condition then save the results as a new object
 
 ```
-filtered counts
+filtered_counts
 metadata
-```
-Check what gander saw:
-
-```
-gander_peek()
 ```
 
 :eyes: **sample gander output**
 
 ```
 library(DESeq2)
-
-# Create DESeq dataset
-dds <- DESeqDataSetFromMatrix(countData = counts_filtered,
-                              colData = metadata,
-                              design = ~ dex)
-
-# Run DESeq
+dds <- DESeqDataSetFromMatrix(countData = counts_filtered, colData = colData, design = ~ dex)
 dds <- DESeq(dds)
-
-# Get results
-results <- results(dds, contrast = c("dex", "trt", "untrt"))
-
-#Convert the DESeqResults object into a standard data frame, preserve gene names from row names into a dedicated column, and sort rows by raw p-value.
-results_df <- as.data.frame(results) %>%
-  rownames_to_column(var = "gene") %>%
-  arrange(pvalue)
+results <- results(dds)
 ```
 
-Check what gander saw:
+> [!IMPORTANT]
+> HIGHLIGHT: 'results' \
+> PROMPT: View results
 
 ```
-gander_peek()
+results
 ```
 
-# Part 5: Data Analysis and Visualization
+:eyes: **sample gander output**
+
+```
+as.data.frame(results) %>% 
+  rownames_to_column('gene') %>%
+  arrange(desc(abs(log2FoldChange))) %>%
+  head(10)
+```
+
+> [!IMPORTANT]
+> HIGHLIGHT: 'results' \
+> PROMPT: Summarize results
+
+```
+results
+```
+:eyes: **sample gander output**
+
+```
+library(dplyr)
+
+results %>%
+  as.data.frame() %>%
+  summarise(
+    total_genes = n(),
+    significant_up = sum(log2FoldChange > 0 & padj < 0.1, na.rm = TRUE),
+    significant_down = sum(log2FoldChange < 0 & padj < 0.1, na.rm = TRUE),
+    mean_log2_fold_change = mean(log2FoldChange, na.rm = TRUE),
+    median_padj = median(padj, na.rm = TRUE)
+  ) %>%
+  print()
+```
+
+
+# Part 6: Data Analysis and Visualization
 
 ## Examine significant genes
 
 > [!IMPORTANT]
-> HIGHLIGHT: 'results_df' \
+> HIGHLIGHT: 'results' \
 > PROMPT: View top 10 significant genes based on padj
 
 :eyes: **sample gander output**
