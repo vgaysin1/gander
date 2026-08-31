@@ -52,14 +52,10 @@ nohup ollama/bin/ollama serve > ollama.log 2>&1 &
 # Download the model
 ollama/bin/ollama pull qwen3-coder
 
-
-## Step 3. Do a test prompt and check GPU usage
-
-```
-# Execute a test prompt
+# Step 3. Do a test prompt
 ollama/bin/ollama run llama3.1 "Say hi"
 
-# Inspect active processes to confirm the model is partly offloaded 100% to GPU VRAM.
+# Check GPU usage
 ollama/bin/ollama ps
 ```
 
