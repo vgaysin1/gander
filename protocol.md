@@ -28,7 +28,36 @@
 
 ---
 
-# Part 2: Local AI Setup (Ollama + Qwen3-Coder)
+# Part 2: Install Packages 
+
+## Step 1. Install Required Packages
+
+Run the following in the R Console:
+
+```
+# AnVIL packages
+BiocManager::install("AnVILGCP")
+
+# Bioconductor packages
+BiocManager::install("DESeq2")
+
+# AI integration packages
+install.packages(c("gander", "ellmer"))
+```
+
+## Step 2. Load Libraries
+
+```
+library(AnVILGCP)
+library(tidyverse)
+library(DESeq2)
+library(gander)
+library(ellmer)
+```
+
+---
+
+# Part 3: Local AI Setup (Ollama + Qwen3-Coder)
 
 Instead of relying on paid cloud API, we'll run a free, open-source AI model locally on your AnVIL instance, taking advantage of the GPU you provisioned.
 
@@ -77,36 +106,7 @@ chat <- chat_ollama(
 chat$chat("Tell me one fact about bacterial genomes")
 ```
 
----
-
-# Part 3: Install Packages 
-
-## Step 1. Install Required Packages
-
-Run the following in the R Console:
-
-```
-# AnVIL packages
-BiocManager::install("AnVILGCP")
-
-# Bioconductor packages
-BiocManager::install("DESeq2")
-
-# AI integration packages
-install.packages(c("gander", "ellmer"))
-```
-
-## Step 2. Load Libraries
-
-```
-library(AnVILGCP)
-library(tidyverse)
-library(DESeq2)
-library(gander)
-library(ellmer)
-```
-
-## Step 3. Configure gander  
+## Step 4. Configure gander  
 
 Step 1: Set gander's default chat model to your local AI
 
